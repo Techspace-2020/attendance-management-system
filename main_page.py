@@ -182,7 +182,7 @@ class AttendanceHome:
             studentDepartment = self.student_department.get().strip()
             register_student(studentName,studentUsn,studentDepartment)
             print(f"student Name:{studentName} student usn:{studentUsn} student department:{studentDepartment}")
-            self.student_error.config(text="Student Registered Successfully", fg="green")
+            self.student_error.config(text="Duplicates entries not allowed", fg="RED")
     
     def validate_faculty_registration(self):
         if not self.faculty_name.get().strip() or not self.faculty_dept.get().strip() or not self.faculty_id.get().strip():
@@ -194,7 +194,7 @@ class AttendanceHome:
             print(f"Facutly name:{facultyName} Faculty deparment:{departmentName}")
             register_faculty(facultyName,departmentName,faculty_id)
             # print("Faculty Name:", facultyName)
-            self.faculty_error.config(text="Faculty Registered Successfully", fg="green")
+            self.faculty_error.config(text="Duplicates entries not allowed", fg="RED")
 
     def scan_barcode(self):
         threading.Thread(target=self.open_camera, daemon=True).start()
