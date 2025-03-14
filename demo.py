@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import Label, Button, Entry, Canvas, messagebox
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageEnhance
 import cv2
 import pandas as pd
 from pyzbar.pyzbar import decode
@@ -17,7 +17,13 @@ class AttendanceHome:
         self.bg_image = Image.open("college.jpg")  # Ensure this image is in the same directory
         self.bg_image = self.bg_image.resize((self.root.winfo_screenwidth(), self.root.winfo_screenheight()), Image.Resampling.LANCZOS)
         self.bg_photo = ImageTk.PhotoImage(self.bg_image)
-        
+
+        # Load College Logo
+        remove_white_background("college_logo.png") 
+        self.logo_image = Image.open("logo_without_bg.png").resize((60, 60), Image.Resampling.LANCZOS)  # Resize with high quality
+        self.logo_photo = ImageTk.PhotoImage(self.logo_image)
+
+
         # Canvas for Background
         self.canvas = Canvas(self.root, width=self.root.winfo_screenwidth(), height=self.root.winfo_screenheight())
         self.canvas.pack(fill="both", expand=True)
@@ -30,6 +36,14 @@ class AttendanceHome:
         Label(header_frame, text="Attendance Management System", font=("Arial", 20, "bold"), bg="#004488", fg="white").pack()
         Label(header_frame, text="KNS Institute of Technology and Engineering", font=("Arial", 14, "bold"), bg="#004488", fg="white").pack()
         
+        # College Logo on the Left Side
+        logo_label = Label(header_frame, image=self.logo_photo, bg="#004488")
+        logo_label.place(x=335, y=10)
+
+        # Right Logo
+        logo_right = tk.Label(header_frame, image=self.logo_photo, bg="#004488")
+        logo_right.place(x=875, y=10)
+
         # Home and Logout Buttons
         Button(header_frame, text="Home", font=("Arial", 12, "bold"), command=self.home_action).place(x=20, y=20)
         Button(header_frame, text="Logout", font=("Arial", 12, "bold"), command=self.confirm_logout).place(x=self.root.winfo_screenwidth()-100, y=20)
@@ -96,6 +110,7 @@ class AttendanceHome:
         # readme_button.config(borderwidth=2, highlightthickness=2)
         
         self.root.protocol("WM_DELETE_WINDOW", self.confirm_exit)
+
 
     def home_action(self):
         # self.root.destroy()  
@@ -191,6 +206,29 @@ class AttendanceHome:
         conn.close()
         messagebox.showinfo("Report", f"Report generated: {report_filename}")
 
+def remove_white_background(image_path):
+    image = Image.open(image_path).convert("RGBA")  
+    data = image.getdata()
+
+    new_data = []
+    for item in data:
+        # Check for white or near white pixels
+        if item[0] > 240 and item[1] > 240 and item[2] > 240:
+            new_data.append((255, 255, 255, 0))  # Replace white with transparent
+        else:
+            new_data.append(item)
+
+    image.putdata(new_data)
+
+    # Increase Brightness and Sharpness
+    enhancer = ImageEnhance.Brightness(image)
+    image = enhancer.enhance(19)  # Increase brightness by 1.5x
+
+    sharpness = ImageEnhance.Sharpness(image)
+    image = sharpness.enhance(20)
+
+    image.putdata(new_data)
+    image.save("logo_without_bg.png")
 
 if __name__ == "__main__":
     root = tk.Tk()

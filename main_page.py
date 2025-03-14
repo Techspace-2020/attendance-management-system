@@ -1,7 +1,7 @@
 import threading
 import tkinter as tk
 from tkinter import Label, Button, Entry, Canvas, messagebox
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageEnhance
 import cv2
 import pandas as pd
 from pyzbar.pyzbar import decode
@@ -26,6 +26,12 @@ class AttendanceHome:
         self.canvas = Canvas(self.root, width=self.root.winfo_screenwidth(), height=self.root.winfo_screenheight())
         self.canvas.pack(fill="both", expand=True)
         self.canvas.create_image(0, 0, image=self.bg_photo, anchor="nw")
+
+        # Load College Logo
+        #remove_white_background("college_logo.png")
+        self.logo_image = Image.open("college_logo.png").convert("RGBA")
+        self.logo_image = self.logo_image.resize((60, 60), Image.Resampling.BICUBIC)  # Resize with high quality
+        self.logo_photo = ImageTk.PhotoImage(self.logo_image)
         
         # Header
         header_frame = tk.Frame(self.root, bg="#004488")
@@ -34,6 +40,14 @@ class AttendanceHome:
         Label(header_frame, text="Attendance Management System", font=("Arial", 20, "bold"), bg="#004488", fg="white").pack()
         Label(header_frame, text="KNS Institute of Technology and Engineering", font=("Arial", 14, "bold"), bg="#004488", fg="white").pack()
         
+        # College Logo on the Left Side
+        logo_label = Label(header_frame, image=self.logo_photo, bg="#004488")
+        logo_label.place(x=335, y=10)
+
+        # Right Logo
+        logo_right = tk.Label(header_frame, image=self.logo_photo, bg="#004488")
+        logo_right.place(x=875, y=10)
+
         # Home and Logout Buttons
         Button(header_frame, text="Home", font=("Arial", 12, "bold"), command=self.home_action).place(x=20, y=20)
         Button(header_frame, text="Logout", font=("Arial", 12, "bold"), command=self.confirm_logout).place(x=self.root.winfo_screenwidth()-100, y=20)
@@ -182,7 +196,7 @@ class AttendanceHome:
             studentDepartment = self.student_department.get().strip()
             register_student(studentName,studentUsn,studentDepartment)
             print(f"student Name:{studentName} student usn:{studentUsn} student department:{studentDepartment}")
-            self.student_error.config(text="Duplicates entries not allowed", fg="RED")
+            self.student_error.config(text="Student with this details is already present", fg="RED")
     
     def validate_faculty_registration(self):
         if not self.faculty_name.get().strip() or not self.faculty_dept.get().strip() or not self.faculty_id.get().strip():
@@ -194,7 +208,7 @@ class AttendanceHome:
             print(f"Facutly name:{facultyName} Faculty deparment:{departmentName}")
             register_faculty(facultyName,departmentName,faculty_id)
             # print("Faculty Name:", facultyName)
-            self.faculty_error.config(text="Duplicates entries not allowed", fg="RED")
+            self.faculty_error.config(text="Faculty with this details is already present", fg="RED")
 
     def scan_barcode(self):
         threading.Thread(target=self.open_camera, daemon=True).start()
@@ -439,6 +453,32 @@ def generate_report(month, year):
 #     cap.release()
 #     cv2.destroyAllWindows()
 #     conn.close()
+
+
+#Remove background color and increase brightness
+def remove_white_background(image_path):
+    image = Image.open(image_path).convert("RGBA")  
+    data = image.getdata()
+
+    new_data = []
+    for item in data:
+        # Check for white or near white pixels
+        if item[0] > 240 and item[1] > 240 and item[2] > 240:
+            new_data.append((255, 255, 255, 0)) 
+        else:
+            new_data.append(item)
+
+    image.putdata(new_data)
+
+    # Increase Brightness and Sharpness
+    enhancer = ImageEnhance.Brightness(image)
+    image = enhancer.enhance(19)  
+
+    sharpness = ImageEnhance.Sharpness(image)
+    image = sharpness.enhance(20)
+
+    image.putdata(new_data)
+    image.save("logo_without_bg.png")
 
 #Database Connection
 def db_connect():
