@@ -8,6 +8,7 @@ from pyzbar.pyzbar import decode
 import mysql.connector
 from datetime import datetime
 import openpyxl
+import re
 
 # from attendance_system import mark_attendance
 
@@ -49,14 +50,14 @@ class AttendanceHome:
         logo_right.place(x=875, y=10)
 
         # Home and Logout Buttons
-        Button(header_frame, text="Home", font=("Arial", 12, "bold"), command=self.home_action).place(x=20, y=20)
-        Button(header_frame, text="Logout", font=("Arial", 12, "bold"), command=self.confirm_logout).place(x=self.root.winfo_screenwidth()-100, y=20)
+        #Button(header_frame, text="Home", font=("Arial", 12, "bold"), command=self.home_action).place(x=20, y=20)
+        Button(header_frame, text="Close Window", font=("Arial", 12, "bold"), command=self.confirm_logout).place(x=self.root.winfo_screenwidth()-100, y=20)
         
         # Student Registration Section (Left)
         student_frame = tk.Frame(self.root, bg="#e6f0ff", bd=3, relief=tk.RIDGE)
         student_frame.place(relx=0.05, rely=0.3, relwidth=0.25, relheight=0.5)
         Label(student_frame, text="Student Register", font=("Arial", 14, "bold"), bg="#aad4ff").pack(pady=10)
-        Label(student_frame, text="Username:").pack()
+        Label(student_frame, text="Student Name:").pack()
         self.student_name = Entry(student_frame, width=30)
         self.student_name.pack(pady=5)
         Label(student_frame, text="USN:").pack()
@@ -67,6 +68,7 @@ class AttendanceHome:
         self.student_department.pack(pady=5)
         self.student_error = Label(student_frame, text="", fg="red")
         self.student_error.pack()
+
         # Button(student_frame, text="Scan ID card", command=self.capture_barcode).pack(pady=5)
         Button(student_frame, text="Register", font=("Arial", 12, "bold"), width=20, command=self.validate_student_registration).pack(pady=10)
         Button(student_frame, text="CLEAR", font=("Arial", 10, "bold"), command=self.clear_student_fields).pack(pady=5, side="left")
@@ -75,7 +77,7 @@ class AttendanceHome:
         faculty_frame = tk.Frame(self.root, bg="#e6f0ff", bd=3, relief=tk.RIDGE)
         faculty_frame.place(relx=0.375, rely=0.3, relwidth=0.25, relheight=0.5)
         Label(faculty_frame, text="Faculty Register", font=("Arial", 14, "bold"), bg="#99c2ff").pack(pady=10)
-        Label(faculty_frame, text="Username:").pack()
+        Label(faculty_frame, text="Faculty Name:").pack()
         self.faculty_name = Entry(faculty_frame, width=30)
         self.faculty_name.pack(pady=5)
         Label(faculty_frame, text="Department:").pack()
@@ -87,7 +89,6 @@ class AttendanceHome:
         self.faculty_error = Label(faculty_frame, text="", fg="red")
         self.faculty_error.pack()
         
-
         # Button(faculty_frame, text="Scan ID card", command=self.capture_barcode).pack(pady=5)
         Button(faculty_frame, text="Register", font=("Arial", 12, "bold"), width=20, command=self.validate_faculty_registration).pack(pady=10)
         Button(faculty_frame, text="CLEAR", font=("Arial", 10, "bold"), command=self.clear_faculty_fields).pack(pady=5, side="left")
@@ -187,28 +188,79 @@ class AttendanceHome:
         )
         messagebox.showinfo("Application Features", features)
 
+    # def validate_student_fields(self):
+    #     regex = r"^[A-Za-zÀ-ÿ-'\s]{3,50}$"
+    #     student_usn = self.student_usn
+    #     if re.match(self.student_name,regex!=True):
+    #         self.student_error.config(text="Username shouldn't be alpha numerical")
+    #     if re.match(self.student_department!=True):
+    #         self.student_error.config(text="Department shouldn't be alpha numerical")
+    #     if (re.match(self.student_usn!=True) and student_usn.len!=10):
+    #         self.student_error.config(text="Please Enter valid USN with 10 character")
+        
+
     def validate_student_registration(self):
+        regex = r"^[A-Za-zÀ-ÿ-'\s]{3,50}$"
+        student_name = self.student_name.get().strip()
+        student_usn = self.student_usn.get().strip()
+        student_department = self.student_department.get().strip()
+
+         # Clear previous errors
+        self.student_error.config(text="", fg="red")
+        is_valid = True
+
         if not self.student_name.get().strip() or not self.student_usn.get().strip() or not self.student_department.get().strip():
             self.student_error.config(text="All fields are mandatory!")
-        else:
-            studentName = self.student_name.get().strip()
-            studentUsn = self.student_usn.get().strip()
-            studentDepartment = self.student_department.get().strip()
-            register_student(studentName,studentUsn,studentDepartment)
-            print(f"student Name:{studentName} student usn:{studentUsn} student department:{studentDepartment}")
-            self.student_error.config(text="Student with this details is already present", fg="RED")
-    
+            is_valid = False
+
+        # Validate Student Name (Only Alphabets)
+        elif not student_name.isalpha():
+            self.student_error.config(text="Invalid!, Please enter valid name", fg="red")
+            is_valid = False
+
+        # Validate USN (Exactly 10 characters, Alphanumeric, No Special Characters)
+        elif len(student_usn) != 10 or not student_usn.isalnum():
+            self.student_error.config(text="Invalid!, Please enter valid USN", fg="red")
+            is_valid = False
+
+        # Validate Department (Only Alphabets)
+        elif not student_department.isalpha():
+            self.student_error.config(text="Invalid!, Please enter valid deparment name", fg="red")
+            is_valid = False
+
+        # Register Student if all validations pass
+        if is_valid:
+            register_student(student_name, student_usn, student_department)
+            #self.student_error.config(text="✅ Student Registered Successfully!", fg="green")
+
+
     def validate_faculty_registration(self):
+        faculty_name = self.faculty_name.get().strip()
+        department_name = self.faculty_dept.get().strip()
+        faculty_id = self.faculty_id.get().strip()
+        isValid = True
+
+        self.faculty_error.config(text="",fg="red")
+
         if not self.faculty_name.get().strip() or not self.faculty_dept.get().strip() or not self.faculty_id.get().strip():
             self.faculty_error.config(text="All fields are mandatory!")
-        else:
-            facultyName = self.faculty_name.get().strip()
-            departmentName = self.faculty_dept.get().strip()
-            faculty_id = self.faculty_id.get().strip()
-            print(f"Facutly name:{facultyName} Faculty deparment:{departmentName}")
-            register_faculty(facultyName,departmentName,faculty_id)
-            # print("Faculty Name:", facultyName)
-            self.faculty_error.config(text="Faculty with this details is already present", fg="RED")
+            isValid = False
+
+        elif not faculty_name.isalpha():
+            self.faculty_error.config(text="Invalid!, Please enter a valid name",fg="red")
+            isValid = False
+
+        elif not department_name.isalpha():
+            self.faculty_error.config(text="Invalid!, Please enter valid department name", fg="red")
+            isValid = False
+
+        elif len(faculty_id)!=10 or  not faculty_id.isalnum():
+            self.faculty_error.config(text="Invalid!, Please enter a valid ID", fg="red")
+            isValid = False
+
+        if isValid:
+            register_faculty(faculty_name,department_name,faculty_id)
+
 
     def scan_barcode(self):
         threading.Thread(target=self.open_camera, daemon=True).start()
@@ -264,7 +316,7 @@ class AttendanceHome:
                 query = "INSERT INTO attendance (student_id, date) VALUES (%s, %s)"
                 cursor.execute(query, (student_id, today_date))
                 conn.commit()
-                messagebox.showinfo("Success", f"Attendance marked for {student_name} (USN: {student_usn})")
+                messagebox.showinfo("Success", f"Attendance marked for {student_name} (USN: {student_usn}) for today")
 
         else:
             messagebox.showerror("Error", f"No student found with USN: {student_usn}, please register and try again!")
@@ -347,14 +399,14 @@ def register_student(username, usn, department):
     cursor.execute(getStudent,(usn,))
     student = cursor.fetchone()
     if(student):
-        messagebox.showerror("Error!", f"Student already registered with USN: {usn}")
+        messagebox.showerror("Error!", f"Student already registered with this USN: {usn}")
     else:
         query = """INSERT INTO students (username, usn, department)
                 VALUES (%s, %s, %s)"""
         cursor.execute(query, (username, usn, department))
         conn.commit()
         conn.close()
-        messagebox.showinfo("Success", f"Student Registered Successfully with USN: {usn}")   
+        messagebox.showinfo("Success", f"✅Student Registered Successfully! with USN: {usn}")   
 
 
 #Faculty Register
@@ -366,14 +418,14 @@ def register_faculty(username,deparment,id):
     cursor.execute(getFacutly,(id,))
     faculty = cursor.fetchone()
     if(faculty):
-        messagebox.showerror("Error!", f"Faculty already registered with USN: {id}")
+        messagebox.showerror("Error!", f"Faculty already registered with this USN: {id}")
     else:
         query = """INSERT INTO faculty (username, department, faculty_id)
                 VALUES (%s, %s, %s)"""
         cursor.execute(query, (username, deparment, id))
         conn.commit()
         conn.close()
-        messagebox.showinfo("Success", f"Facutly Registered Successfully with USN: {id}")   
+        messagebox.showinfo("Success", f"✅Facutly Registered Successfully with USN: {id}")   
 
 
 # Function to generate monthly attendance report
