@@ -51,7 +51,7 @@ class AttendanceHome:
 
         # Home and Logout Buttons
         #Button(header_frame, text="Home", font=("Arial", 12, "bold"), command=self.home_action).place(x=20, y=20)
-        Button(header_frame, text="Close Window", font=("Arial", 12, "bold"), command=self.confirm_logout).place(x=self.root.winfo_screenwidth()-100, y=20)
+        Button(header_frame, text="Close Window", font=("Arial", 12, "bold"), command=self.confirm_logout).place(x=self.root.winfo_screenwidth()-150, y=20)
         
         # Student Registration Section (Left)
         student_frame = tk.Frame(self.root, bg="#e6f0ff", bd=3, relief=tk.RIDGE)
@@ -214,7 +214,8 @@ class AttendanceHome:
             is_valid = False
 
         # Validate Student Name (Only Alphabets)
-        elif not student_name.isalpha():
+        elif not all(c.isalpha() or c.isspace() for c in student_name):
+            print(student_name)
             self.student_error.config(text="Invalid!, Please enter valid name", fg="red")
             is_valid = False
 
@@ -246,7 +247,7 @@ class AttendanceHome:
             self.faculty_error.config(text="All fields are mandatory!")
             isValid = False
 
-        elif not faculty_name.isalpha():
+        elif not all(f.isalpha() or f.isspace() for f in faculty_name):
             self.faculty_error.config(text="Invalid!, Please enter a valid name",fg="red")
             isValid = False
 

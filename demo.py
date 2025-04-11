@@ -173,7 +173,31 @@ class AttendanceHome:
         )
         messagebox.showinfo("Application Features", features)
 
-    def generate_report(month, year):
+def remove_white_background(image_path):
+    image = Image.open(image_path).convert("RGBA")  
+    data = image.getdata()
+
+    new_data = []
+    for item in data:
+        # Check for white or near white pixels
+        if item[0] > 240 and item[1] > 240 and item[2] > 240:
+            new_data.append((255, 255, 255, 0))  # Replace white with transparent
+        else:
+            new_data.append(item)
+
+    image.putdata(new_data)
+
+    # Increase Brightness and Sharpness
+    enhancer = ImageEnhance.Brightness(image)
+    image = enhancer.enhance(19)  # Increase brightness by 1.5x
+
+    sharpness = ImageEnhance.Sharpness(image)
+    image = sharpness.enhance(20)
+
+    image.putdata(new_data)
+    image.save("logo_without_bg.png")
+
+def generate_report(month, year):
         conn = db_connect()
         cursor = conn.cursor()
 
@@ -206,29 +230,10 @@ class AttendanceHome:
         conn.close()
         messagebox.showinfo("Report", f"Report generated: {report_filename}")
 
-def remove_white_background(image_path):
-    image = Image.open(image_path).convert("RGBA")  
-    data = image.getdata()
-
-    new_data = []
-    for item in data:
-        # Check for white or near white pixels
-        if item[0] > 240 and item[1] > 240 and item[2] > 240:
-            new_data.append((255, 255, 255, 0))  # Replace white with transparent
-        else:
-            new_data.append(item)
-
-    image.putdata(new_data)
-
-    # Increase Brightness and Sharpness
-    enhancer = ImageEnhance.Brightness(image)
-    image = enhancer.enhance(19)  # Increase brightness by 1.5x
-
-    sharpness = ImageEnhance.Sharpness(image)
-    image = sharpness.enhance(20)
-
-    image.putdata(new_data)
-    image.save("logo_without_bg.png")
+#Database Connection
+def db_connect():
+    return mysql.connector.connect(
+            host="localhost", user="root", password="techspace@123", database="attendance_system")
 
 if __name__ == "__main__":
     root = tk.Tk()
