@@ -84,7 +84,7 @@ class AttendanceHome:
         # Generate Attendance Report Button (Moved Above Mark Attendance Panel)
         month = datetime.now().strftime("%m")
         year = datetime.now().strftime("%Y")
-        report_button = tk.Button(self.root, text="Generate Monthly Report", font=("Arial", 12, "bold"), command=lambda: generate_report(month, year))
+        report_button = tk.Button(self.root, text="Generate Monthly Report", font=("Arial", 12, "bold"), command=lambda: show_login_popup(month, year))
         report_button.place(relx=0.7, rely=0.23, relwidth=0.25, height=40)
         
         # Mark Attendance Section (Right)
@@ -229,6 +229,34 @@ def generate_report(month, year):
 
         conn.close()
         messagebox.showinfo("Report", f"Report generated: {report_filename}")
+
+def show_login_popup(month, year):
+    login_window = tk.Toplevel()
+    login_window.title("Authentication")
+    login_window.geometry("300x180")
+    login_window.resizable(False, False)
+
+    tk.Label(login_window, text="Username:").pack(pady=(15, 0))
+    username_entry = tk.Entry(login_window)
+    username_entry.pack()
+
+    tk.Label(login_window, text="Password:").pack(pady=(10, 0))
+    password_entry = tk.Entry(login_window, show="*")
+    password_entry.pack()
+
+    def submit_login():
+        username = username_entry.get()
+        password = password_entry.get()
+
+        # Static credentials
+        if username == "admin" and password == "admin@kns":
+            login_window.destroy()
+            generate_report(month, year)
+        else:
+            messagebox.showerror("Access Denied", "Invalid username or password.")
+
+    submit_btn = tk.Button(login_window, text="Submit", command=submit_login)
+    submit_btn.pack(pady=15)
 
 #Database Connection
 def db_connect():
