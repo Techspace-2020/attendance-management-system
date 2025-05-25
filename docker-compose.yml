@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: attendance_system_app
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: attendance_system_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: awstest2025
+      MYSQL_DATABASE: attendance_system
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: awstest2025
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
